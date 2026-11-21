@@ -10,7 +10,6 @@
             padding: 0;
             overflow: hidden;
             background: linear-gradient(135deg, #2D1B69 0%, #11998E 100%);
-            cursor: none;
         }
         
         .scene {
@@ -141,6 +140,13 @@
             padding: 10px 20px;
             border-radius: 20px;
             backdrop-filter: blur(10px);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
@@ -301,7 +307,6 @@
         <div class="message">Move your cursor to guide the massive school of 120 fish through the cosmic ocean - watch them swarm actively!</div>
     </div>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <script>
         // Fish school system
         class FishSchool {
@@ -311,10 +316,11 @@
                 this.mouseY = window.innerHeight / 2;
                 this.container = document.getElementById('fishContainer');
                 this.cursorLight = document.querySelector('.cursor-light');
+                this.motionReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 
                 this.initFish();
                 this.bindEvents();
-                this.animate();
+                if (!this.motionReduced) this.animate();
             }
             
             initFish() {
@@ -372,7 +378,7 @@
             }
             
             bindEvents() {
-                document.addEventListener('mousemove', (e) => {
+                document.addEventListener('pointermove', (e) => {
                     this.mouseX = e.clientX;
                     this.mouseY = e.clientY;
                     
@@ -568,17 +574,18 @@
             });
         }
         
-        // Initialize everything
+        // Initialize the scene and respect the user's motion preference.
         document.addEventListener('DOMContentLoaded', () => {
-            new FishSchool();
-            initWhaleInteraction();
-            
-            // Create bubbles periodically
-            setInterval(createBubble, 2000);
-            
-            // Create initial bubbles
-            for (let i = 0; i < 5; i++) {
-                setTimeout(createBubble, i * 400);
+            const fishSchool = new FishSchool();
+            if (!fishSchool.motionReduced) {
+                initWhaleInteraction();
+                setInterval(createBubble, 2000);
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(createBubble, i * 400);
+                }
+            } else {
+                document.querySelector('.message').textContent =
+                    'Reduced-motion preference detected. The underwater scene is shown without continuous animation.';
             }
         });
     </script>
